@@ -1,25 +1,99 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-// Desafio Tetris Stack
-// Tema 3 - Integração de Fila e Pilha
-// Este código inicial serve como base para o desenvolvimento do sistema de controle de peças.
-// Use as instruções de cada nível para desenvolver o desafio.
+typedef struct {
+    char nome[30];
+    int idade;
+} Pessoa;
+
+#define MAX 5
+
+//Cria uma fila para armazenar as informacoes adicionadas
+typedef struct {
+    Pessoa itens[MAX];
+    int inicio;
+    int fim;
+    int total;
+} Fila;
+
+// Inicializa a fila zerando os indices
+void inicializarFila(Fila *f) {
+    f->inicio = 0;
+    f->fim = 0;
+    f->total = 0;
+}
+
+//Retorna true se estiver cheia
+int filaCheia(Fila *f) {
+    return f->total == MAX;
+}
+
+//retorna true se estiver vazia
+int filaVazia(Fila *f){
+    return f->total == 0;
+}
+
+//Insere uma nova pessoa na fila caso nao esteja cheia
+void inserir(Fila *f, Pessoa p) {
+    if(filaCheia(f)) {
+        printf("Fila cheia. Não é possível inserir.\n");
+        return;
+    }
+
+    f->itens[f->fim] = p;
+    //Avança o fim da fila de forma circular
+    f->fim = (f->fim + 1) % MAX;
+    f->total++;
+}
+
+//Remove uma pessoa caso exista alguem na fila
+void remover(Fila *f, Pessoa *p) {
+    if (filaVazia(f)) {
+        printf("Fila vazia. Não é possível remover.\n");
+        return;
+    }
+
+    *p = f->itens[f->inicio];
+    //Avança o início da fila de forma circular
+    f->inicio = (f->inicio + 1) % MAX;
+    f->total--;
+}
+
+//Exibe a fila 
+void mostrarFila(Fila *f) {
+    printf("Fila: ");
+
+    for (int i = 0, idx = f->inicio; i < f->total; i++, idx = (idx + 1) % MAX) {
+        printf("[%s, %d] ", f->itens[idx].nome, f->itens[idx].idade);
+    }
+
+    printf("\n");
+}
 
 int main() {
+    Fila f;
+    inicializarFila(&f);
 
-    // 🧩 Nível Novato: Fila de Peças Futuras
-    //
-    // - Crie uma struct Peca com os campos: tipo (char) e id (int).
-    // - Implemente uma fila circular com capacidade para 5 peças.
-    // - Crie funções como inicializarFila(), enqueue(), dequeue(), filaCheia(), filaVazia().
-    // - Cada peça deve ser gerada automaticamente com um tipo aleatório e id sequencial.
-    // - Exiba a fila após cada ação com uma função mostrarFila().
-    // - Use um menu com opções como:
-    //      1 - Jogar peça (remover da frente)
-    //      0 - Sair
-    // - A cada remoção, insira uma nova peça ao final da fila.
+    //Adiciona pessoas para inserir posteriormente
+    Pessoa p1 = {"João", 25};
+    Pessoa p2 = {"Maria", 30};
+    Pessoa p3 = {"Luiza", 32};
+    
+    inserir(&f, p1);
+    inserir(&f, p2);
 
+    mostrarFila(&f);
 
+    //Remove a primeira pessoa da fila (FIFO)
+    Pessoa removida;
+    remover(&f, &removida);
+    printf("Pessoa removida: %s, %d\n", removida.nome, removida.idade);
+    remover(&f, &removida);
+
+    mostrarFila(&f);
+
+    return 0;
+}
 
     // 🧠 Nível Aventureiro: Adição da Pilha de Reserva
     //
@@ -49,8 +123,3 @@ int main() {
     // - O menu deve ficar assim:
     //      4 - Trocar peça da frente com topo da pilha
     //      5 - Trocar 3 primeiros da fila com os 3 da pilha
-
-
-    return 0;
-}
-
