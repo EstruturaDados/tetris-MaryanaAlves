@@ -1,96 +1,139 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-typedef struct {
-    char nome[30];
-    int idade;
-} Pessoa;
+typedef struct{
+    char nome;
+    int id;
+} Peca;
 
 #define MAX 5
 
-//Cria uma fila para armazenar as informacoes adicionadas
-typedef struct {
-    Pessoa itens[MAX];
+typedef struct{
+    Peca pecas[MAX];
+    int contadorID;
     int inicio;
     int fim;
     int total;
 } Fila;
 
-// Inicializa a fila zerando os indices
 void inicializarFila(Fila *f) {
     f->inicio = 0;
     f->fim = 0;
     f->total = 0;
+    f->contadorID = 0;
 }
 
-//Retorna true se estiver cheia
 int filaCheia(Fila *f) {
     return f->total == MAX;
 }
 
-//retorna true se estiver vazia
-int filaVazia(Fila *f){
+int filaVazia(Fila *f) {
     return f->total == 0;
 }
 
-//Insere uma nova pessoa na fila caso nao esteja cheia
-void inserir(Fila *f, Pessoa p) {
-    if(filaCheia(f)) {
-        printf("Fila cheia. Não é possível inserir.\n");
-        return;
-    }
+Peca gerarPeca(Fila *f) {
+    Peca p;
+    char tipos[] = {'I', 'O', 'T', 'L'};
 
-    f->itens[f->fim] = p;
-    //Avança o fim da fila de forma circular
-    f->fim = (f->fim + 1) % MAX;
-    f->total++;
+    int indice = rand() % 4;
+
+    p.nome = tipos[indice];
+    p.id = f->contadorID++;
+
+    return p;
 }
 
-//Remove uma pessoa caso exista alguem na fila
-void remover(Fila *f, Pessoa *p) {
+void jogarPeca(Fila *f, Peca *p) {
     if (filaVazia(f)) {
-        printf("Fila vazia. Não é possível remover.\n");
+        printf("Sem pecas disponiveis. Nao e possivel jogar.\n");
         return;
     }
 
-    *p = f->itens[f->inicio];
-    //Avança o início da fila de forma circular
+    *p = f->pecas[f->inicio];
+
+    printf("Peca jogada: [%c %d]\n", p->nome, p->id);
+
     f->inicio = (f->inicio + 1) % MAX;
     f->total--;
 }
 
-//Exibe a fila 
-void mostrarFila(Fila *f) {
-    printf("Fila: ");
+void inserirPeca(Fila *f) {
+    if (filaCheia(f)) {
+        printf("Fila cheia. Nao e possivel inserir nova peca.\n");
+        return;
+    }
 
-    for (int i = 0, idx = f->inicio; i < f->total; i++, idx = (idx + 1) % MAX) {
-        printf("[%s, %d] ", f->itens[idx].nome, f->itens[idx].idade);
+    Peca nova = gerarPeca(f);
+
+    f->pecas[f->fim] = nova;
+    f->fim = (f->fim + 1) % MAX;
+    f->total++;
+
+    printf("Peca inserida: [%c %d]\n", nova.nome, nova.id);
+}
+
+void mostrarFila(Fila *f) {
+    printf("Pecas: ");
+
+    for(int i=0, idc = f->inicio; i < f->total; i++, idc = (idc + 1) % MAX) {
+        printf("[%c %d] ", f->pecas[idc].nome, f->pecas[idc].id);
     }
 
     printf("\n");
 }
 
+void limparBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
 int main() {
+    srand((unsigned int) time(NULL));
+
     Fila f;
+    int opcao;
+    Peca removida;
+
     inicializarFila(&f);
 
-    //Adiciona pessoas para inserir posteriormente
-    Pessoa p1 = {"João", 25};
-    Pessoa p2 = {"Maria", 30};
-    Pessoa p3 = {"Luiza", 32};
-    
-    inserir(&f, p1);
-    inserir(&f, p2);
+    for(int i=0; i<MAX; i++) {
+        inserirPeca(&f);
+    }
 
     mostrarFila(&f);
 
-    //Remove a primeira pessoa da fila (FIFO)
-    Pessoa removida;
-    remover(&f, &removida);
-    printf("Pessoa removida: %s, %d\n", removida.nome, removida.idade);
-    remover(&f, &removida);
+    do {
+        printf("\n-------- MENU --------\n");
+        printf("1. Jogar peca\n");
+        printf("2. Inserir nova peca\n");
+        printf("0. Sair\n");
+        printf("\n");
+        printf("Escolha uma opcao: ");
+        scanf("%d", &opcao);
+        limparBuffer();
 
-    mostrarFila(&f);
+        printf("\n");
+
+        if(opcao == 1) {
+            jogarPeca(&f, &removida);
+            printf("Pressione enter para continuar!\n");
+            getchar();
+        } else if (opcao == 2) {
+            inserirPeca(&f);
+            printf("Pressione enter para continuar!\n");
+            getchar();
+        } else if (opcao == 0) {
+            printf("Encerrando programa...\n");
+            break;
+        } else {
+            printf("Opcao invalida, pressione enter para tentar novamente!\n");
+            getchar();
+        } 
+
+        mostrarFila(&f);
+
+    } while (opcao != 0);
 
     return 0;
 }
